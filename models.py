@@ -1,6 +1,8 @@
 import time, json
 from hashlib import sha256
 
+difficulty = 2
+
 
 class Blockchain():
     txns_in_block_limit = 10
@@ -19,6 +21,7 @@ class Blockchain():
         )
         genesis_block.mine()
         self.blocks.append(genesis_block)
+
     def add_txn_to_mempool(self, name, weight, timestamp):
         txn_dict = {
             'name': name,
@@ -46,10 +49,29 @@ class Blockchain():
         )
 
         new_block.mine()
-        self.blocks.append(new_block)
+        self.add_block(new_block)
+
             #create a Block
             #mind block('solve' nonce)
             #add to chain
+
+    def add_block(self, block):
+        #check previous hash to verify
+        previous_block = self.last_block()
+        if block.previous_hash != previous_block.to_hash():
+            return False
+        #index must be +1 of previous index
+        if block.index != previous_block.index + 1:
+            return False
+        #transactions are valid
+        for txn in block.txns:
+            if not self.txn_is_valid(txn):
+                return False
+        #verify proof of work (hash)
+        if block.to_hash()[0:difficulty] != '0'*difficulty:
+            return False
+
+        self.blocks.append(block)
 
     def block_is_valide(self,block):
         pass
@@ -59,7 +81,6 @@ class Blockchain():
         return self.blocks[-1]
 
 class Block():
-    difficulty = 4
 
     def __init__(self, txns = [], timestamp = 0.0, index = 0, previous_hash = ''):
         self.txns = txns
@@ -74,10 +95,10 @@ class Block():
 
     def mine(self):
         current_block_hash = self.to_hash()
-        while self.to_hash()[0:self.difficulty] != '0'*self.difficulty:
+        while current_block_hash[0:difficulty] != '0'*difficulty:
             self.nonce += 1
             current_block_hash = self.to_hash()
-            print (self.nonce, current_block_hash)
+            #print (self.nonce, current_block_hash)
 
 
 
