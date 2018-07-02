@@ -8,6 +8,17 @@ class Blockchain():
     def __init__(self, blocks = [], mempool = []):
         self.blocks =[]
         self.mempool = []
+        self.create_genesis_block()
+
+    def create_genesis_block(self):
+        genesis_block = Block(
+            index = 0,
+            timestamp = time.time(),
+            txns = [],
+            previous_hash = ''
+        )
+        genesis_block.mine()
+        self.blocks.append(genesis_block)
     def add_txn_to_mempool(self, name, weight, timestamp):
         txn_dict = {
             'name': name,
@@ -34,11 +45,11 @@ class Blockchain():
             previous_hash = self.last_block().to_hash()
         )
 
-    new_block.mine()
-    self.blocks.append(new_block)
-        #create a Block
-        #mind block('solve' nonce)
-        #add to chain
+        new_block.mine()
+        self.blocks.append(new_block)
+            #create a Block
+            #mind block('solve' nonce)
+            #add to chain
 
     def block_is_valide(self,block):
         pass
@@ -49,6 +60,7 @@ class Blockchain():
 
 class Block():
     difficulty = 4
+
     def __init__(self, txns = [], timestamp = 0.0, index = 0, previous_hash = ''):
         self.txns = txns
         self.timestamp = timestamp
@@ -61,13 +73,13 @@ class Block():
         return sha256(block_string.encode()).hexdigest()
 
     def mine(self):
-        while self.to_hash()[0:4] != '0'*self.difficulty:
+        current_block_hash = self.to_hash()
+        while self.to_hash()[0:self.difficulty] != '0'*self.difficulty:
             self.nonce += 1
+            current_block_hash = self.to_hash()
+            print (self.nonce, current_block_hash)
 
 
 
 
-blockchain = Blockchain()
-blockchain.add_txn_to_mempool('steve', 150.0,time.time())
 
-print (blockchain.mempool)
