@@ -1,4 +1,4 @@
-import time, json
+import time, json, requests
 from hashlib import sha256
 
 difficulty = 2
@@ -7,15 +7,16 @@ difficulty = 2
 class Blockchain():
     txns_in_block_limit = 10
 
-    def __init__(self, blocks = [], mempool = []):
+    def __init__(self, blocks = [], mempool = [], network = []):
         self.blocks =[]
         self.mempool = []
         self.create_genesis_block()
+        self.network = network
 
     def create_genesis_block(self):
         genesis_block = Block(
             index = 0,
-            timestamp = time.time(),
+            timestamp = 1531062547.271945,
             txns = [],
             previous_hash = ''
         )
@@ -50,6 +51,7 @@ class Blockchain():
 
         new_block.mine()
         self.add_block(new_block)
+        self.network.broadcast_block(new_block)
 
             #create a Block
             #mind block('solve' nonce)
@@ -72,6 +74,7 @@ class Blockchain():
             return False
 
         self.blocks.append(block)
+        print ('block added:', block.__dict__)
 
     def block_is_valide(self,block):
         pass
@@ -82,12 +85,12 @@ class Blockchain():
 
 class Block():
 
-    def __init__(self, txns = [], timestamp = 0.0, index = 0, previous_hash = ''):
+    def __init__(self, txns = [], timestamp = 0.0, index = 0, previous_hash = '', nonce = 0):
         self.txns = txns
         self.timestamp = timestamp
         self.index = index
         self.previous_hash = previous_hash
-        self.nonce = 0
+        self.nonce = nonce
 
     def to_hash(self):
         block_string = json.dumps(self.__dict__, sort_keys = True)
@@ -100,7 +103,26 @@ class Block():
             current_block_hash = self.to_hash()
             #print (self.nonce, current_block_hash)
 
+class Network():
+    def __init__(self, peers):
+        self.peers = peers
 
+    def ping_all_peers(self):
+        for peer_url in self.peers:
+            try:
+                res = requests.get(peer_url + '/ping')
+                if res.text == 'pong':
+                    print (peer_url, 'is live')
+                else:
+                    print (peer_url, 'is unavailable')
+            except:
+                print (peer_url, 'is unavailable')
 
+    def broadcast_block(self, new_block):
+        for peer_url in self.peers:
+            try:
+                res = requests.post(peer_url + '/add_block', json = new_block.__dict__)
+            except:
+                print (peer_url, 'failed to send block')
 
 
