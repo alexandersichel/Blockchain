@@ -30,13 +30,24 @@ def send_ping():
 def add_block():
     block_data_dict = request.json
     new_block = Block(
-        txns = block_data_dict['txns']
-        timestamp = block_data_dict['timestamp']
-        index = block_data_dict['index']
-        previous_hash = block_data_dict['previous_hash']
-        nonce = block_data_dict['nonce']
+        txns = block_data_dict['txns'],
+        timestamp = block_data_dict['timestamp'],
+        index = block_data_dict['index'],
+        previous_hash = block_data_dict['previous_hash'],
+        nonce = block_data_dict['nonce'],
     )
     blockchain.add_block(new_block)
+
+#node receive txn in mempool
+@app.route('/add_txn_to_mempool' , methods = ['POST'])
+def add_txn_to_mempool():
+    txn_dict = request.json
+    new_txn = {
+        name: txn_dict['name'],
+        weight: txn_dict['weight'],
+        timestamp: txn_dict['timestamp']
+    }
+    blockchain.add_txn_to_mempool(new_txn)
 
 #API for setting the endpoints
 network.ping_all_peers()

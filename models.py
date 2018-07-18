@@ -40,7 +40,8 @@ class Blockchain():
         while (len(txns_for_block) < self.txns_in_block_limit and len(self.mempool) > 0):
             current_txn = self.mempool.pop()
             if self.txn_is_valid(current_txn):
-                txns_for_block.append(current_txn)
+                txns_for_
+                block.append(current_txn)
 
         new_block = Block(
             index = self.last_block().index + 1,
@@ -125,4 +126,9 @@ class Network():
             except:
                 print (peer_url, 'failed to send block')
 
-
+    def broadcast_mempool(self, new_mempool_txn):
+        for peer_url in self.peers:
+            try:
+                res = requests.post(peer_url + '/add_txn_to_mempool', json = txn_dict.__dict__)
+            except:
+                print (peer_url, 'failed to send txn')
