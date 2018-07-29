@@ -41,12 +41,7 @@ def add_block():
 #node receive txn in mempool
 @app.route('/add_txn_to_mempool' , methods = ['POST'])
 def add_txn_to_mempool():
-    txn_dict = request.json
-    new_txn = {
-        name: txn_dict['name'],
-        weight: txn_dict['weight'],
-        timestamp: txn_dict['timestamp']
-    }
+    new_txn = request.json
     blockchain.add_txn_to_mempool(new_txn)
 
 #API for setting the endpoints

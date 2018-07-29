@@ -7,9 +7,9 @@ difficulty = 2
 class Blockchain():
     txns_in_block_limit = 10
 
-    def __init__(self, blocks = [], mempool = [], network = []):
+    def __init__(self, blocks = [], mempool = {}, network = []):
         self.blocks =[]
-        self.mempool = []
+        self.mempool = {}
         self.create_genesis_block()
         self.network = network
 
@@ -29,19 +29,27 @@ class Blockchain():
             'weight': weight,
             'timestamp': timestamp
         }
+        #transaction as single hash
         if self.txn_is_valid(txn_dict):
-            self.mempool.append(txn_dict)
+            txn_string = json.dumps(txn_dict, sort_keys = True)
+            txn_id = sha256(txn_string.encode()).hexdigest()
+         #checking if transaction in our mempool, only add and broadcast if not already in
+         #prevents continuous propigation of txn
+            if txn_id not in self.mempool:
+                self.mempool[txn_id] = txn_dict
+                self.network.broadcast_txn(txn_dict)
         else:
             (print ('invalid txn'))
 
     def create_block(self):
         #gather valid transactions from mempool
         txns_for_block = []
-        while (len(txns_for_block) < self.txns_in_block_limit and len(self.mempool) > 0):
-            current_txn = self.mempool.pop()
+        mempool_list_by_timestamp = [self.mempool[txn_id] for txn_id in self.mempool]
+        mempool_list_by_timestamp.sort(key = lambda txn_dict['timestamp'], reverse = True)
+        while (len(txns_for_block) < self.txns_in_block_limit and len(mempool_list_by_timestamp > 0):
+            current_txn = mempool_list_by_timestamp.pop()
             if self.txn_is_valid(current_txn):
-                txns_for_
-                block.append(current_txn)
+                txns_for_block.append(current_txn)
 
         new_block = Block(
             index = self.last_block().index + 1,
@@ -126,9 +134,9 @@ class Network():
             except:
                 print (peer_url, 'failed to send block')
 
-    def broadcast_mempool(self, new_mempool_txn):
+    def broadcast_txn(self, new_mempool_txn):
         for peer_url in self.peers:
             try:
-                res = requests.post(peer_url + '/add_txn_to_mempool', json = txn_dict.__dict__)
+                res = requests.post(peer_url + '/add_txn_to_mempool', json = new_mempool_txn)
             except:
                 print (peer_url, 'failed to send txn')
