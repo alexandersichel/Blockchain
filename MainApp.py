@@ -17,9 +17,24 @@ network = Network(peers)
 
 blockchain = Blockchain(network = network)
 
+def consensus():
+    #(url, length)
+    chain_len_list = []
+    for peer_url in network.peer:
+        chain_length = network.get_peer_chain_length()
+        if chain_length > blockchain.chain_length():
+            chain_len_list.append((peer_url,chain_length))
+    chain_len_list.sort(key = lambda tup: tup[1])
+    for peer_url, chain_length in chain_len_list:
+        pass
+
 @app.route('/' , methods = ['GET'])
 def get_blocks():
     return json.dumps(blockchain.blocks[0].__dict__)
+
+@app.route('/get_all_blocks', methods = ['GET'])
+def get_all_blocks():
+    return json.dumps(blockchain.all_blocks_as_dicts())
 
 @app.route('/ping' , methods = ['GET'])
 def send_ping():
@@ -41,18 +56,23 @@ def add_block():
 #node receive txn in mempool
 @app.route('/add_txn_to_mempool' , methods = ['POST'])
 def add_txn_to_mempool():
-    new_txn = request.json
+    new_txn\
+        = request.json
     blockchain.add_txn_to_mempool(new_txn)
-
-#API for setting the endpoints
-network.ping_all_peers()
-if __name__ == '__main__':
-    app.run(use_reloader=True, port=port, threaded=True, host='')
 
 if port == 3000:
     blockchain.add_txn_to_mempool('steve', 150.0, time.time())
     blockchain.create_block()
 
+#Block count request
+@app.route('/block_count' , methods = ['GET'])
+def block_count():
+    return blockchain.chain_length()
+
+#API for setting the endpoints
+network.ping_all_peers()
+if __name__ == '__main__':
+    app.run(use_reloader=True, port=port, threaded=True, host='')
 
 #communicate = block, transactions in mempool, consensus of chain
 
