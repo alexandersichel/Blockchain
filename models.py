@@ -30,8 +30,6 @@ class Blockchain():
             list_of_block_dicts.append(block.__dict__)
         return list_of_block_dicts
 
-
-
     def add_txn_to_mempool(self, name, weight, timestamp):
         txn_dict = {
             'name': name,
@@ -124,6 +122,15 @@ class Block():
             current_block_hash = self.to_hash()
             #print (self.nonce, current_block_hash)
 
+    def dict_to_block(self, dict):
+        return Block(
+            txns = d['txns'],
+            timestamp = d['timestamp'],
+            index = d['index'],
+            previous_hash = d['previous_hash'],
+            nonce = d['nonce'],
+        )
+
 class Network():
     def __init__(self, peers):
         self.peers = peers
@@ -156,6 +163,13 @@ class Network():
     def get_peers_chain_length(self, peer_url):
         try:
             res = requests.get(peer_url+'/block_count')
+            return res.data
+        except:
+            print ('error')
+
+    def get_all_blocks(self, peer_url):
+        try:
+            res = requests.get(peer_url+'/get_all_blocks')
             return res.data
         except:
             print ('error')

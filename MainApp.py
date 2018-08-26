@@ -25,8 +25,17 @@ def consensus():
         if chain_length > blockchain.chain_length():
             chain_len_list.append((peer_url,chain_length))
     chain_len_list.sort(key = lambda tup: tup[1])
+
     for peer_url, chain_length in chain_len_list:
-        pass
+        current_potential_blockchain = network.get_all_blocks(peer_url)
+        current_potential_blockchain = [Block.dict_to_block(block_dict) for block_dict in current_potential_blockchain]
+        # explicitely check for that peer has canonical genesis block
+        if blockchain.blocks[0].to_hash() != current_potential_blockchain[0].to_hash():
+            continue
+        potential_blockchain = Blockchain()
+        for potential_block in current_potential_blockchain[1:]:
+            potential_block.add_block(potential_block)
+
 
 @app.route('/' , methods = ['GET'])
 def get_blocks():
